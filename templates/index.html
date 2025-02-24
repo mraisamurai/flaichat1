@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Foods Liver AI Chat</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="quick-replies">
+            <button onclick="sendMessage('Give me a pizza recipe 🍕')">🍕 Pizza Recipe</button>
+            <button onclick="sendMessage('What are healthy meal ideas? 🥗')">🥗 Healthy Meals</button>
+            <button onclick="sendMessage('Tell me smoothie tips 🥤')">🥤 Smoothie Tips</button>
+            <button onclick="sendMessage('Share nutrition facts 📊')">📊 Nutrition Facts</button>
+        </div>
+
+        <div class="chat-box" id="chat-box"></div>
+        <div id="typing-indicator" class="typing-indicator hidden">Foods Liver AI is typing…</div>
+
+        <form id="chat-form" class="chat-form" onsubmit="handleSubmit(event)">
+            <div class="input-group">
+                <input type="text" id="user-message" placeholder="Ask Foods Liver AI anything..." autocomplete="off" required>
+                <button type="submit" id="send-btn">Send</button>
+            </div>
+            <div class="action-buttons">
+                <button type="button" id="reset-btn">Reset Chat</button>
+                <button type="button" id="continue-btn">Continue Writing</button>
+                <button type="button" id="dark-mode-toggle">🌙 Toggle Dark Mode</button>
+            </div>
+        </form>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+</body>
+</html>
