@@ -1,85 +1,80 @@
-document.addEventListener("DOMContentLoaded", function () {
-    const darkModeToggle = document.getElementById("dark-mode-toggle");
+document.addEventListener("DOMContentLoaded", () => {
+    const chatBox = document.getElementById("chat-box");
     const typingIndicator = document.getElementById("typing-indicator");
 
-    if (localStorage.getItem("dark-mode") === "enabled") {
-        document.body.classList.add("dark-mode");
+    // Handle the form submission
+    document.getElementById("chat-form").addEventListener("submit", handleSubmit);
+
+    function handleSubmit(event) {
+        event.preventDefault();
+        const messageInput = document.getElementById("user-message");
+        const message = messageInput.value.trim();
+        if (!message) return;
+        sendMessage(message);
+        messageInput.value = "";
     }
 
-    darkModeToggle.addEventListener("click", () => {
-        document.body.classList.toggle("dark-mode");
-        localStorage.setItem("dark-mode", document.body.classList.contains("dark-mode") ? "enabled" : "disabled");
-    });
+    // Send a message to the Flask backend
+    window.sendMessage = function(message) {
+        appendMessage(message, "user");
+        showTypingIndicator(true);
 
-    document.getElementById("reset-btn").addEventListener("click", resetChat);
-    document.getElementById("continue-btn").addEventListener("click", () => sendMessage("continue"));
-});
-
-function handleSubmit(event) {
-    event.preventDefault();
-    const messageInput = document.getElementById("user-message");
-    sendMessage(messageInput.value.trim());
-    messageInput.value = "";  // Clear input after sending
-}
-
-function resetChat() {
-    fetch("/reset", { method: "POST" })
+        fetch("/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message }),
+        })
         .then(response => response.json())
         .then(data => {
-            document.getElementById("chat-box").innerHTML = "";
-            appendMessage(data.message, "assistant");
+            showTypingIndicator(false);
+            appendMessage(data.reply, "assistant");
+        })
+        .catch((error) => {
+            console.error("Error:", error);
+            showTypingIndicator(false);
         });
-}
+    };
 
-function sendMessage(message) {
-    if (!message) return;
+    // Continue chat
+    window.continueChat = function() {
+        sendMessage("continue");
+    };
 
-    appendMessage(message, "user");
-    showTypingIndicator(true);
+    // Reset chat
+    window.resetChat = function() {
+        fetch("/reset", { method: "POST" })
+            .then(() => {
+                chatBox.innerHTML = "";
+            });
+    };
 
-    fetch("/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message }),
-    })
-    .then(response => response.json())
-    .then(data => {
-        showTypingIndicator(false);
-        appendMessage(data.reply ?? "⚠️ No response from server.", "assistant");
+    // Append a message to the chat box
+    function appendMessage(message, sender) {
+        const msgDiv = document.createElement("div");
+        msgDiv.classList.add("chat-message", sender);
 
-        if (data.show_ad) {
-            appendAd();
+        if (sender === "assistant") {
+            // Use the Ottoman AI avatar
+            msgDiv.innerHTML = `
+                <img src="/static/images/ottoman-ai.png" alt="Ottoman AI" class="chat-avatar" />
+                <div class="message-text">${message}</div>
+            `;
+        } else {
+            msgDiv.innerHTML = `<p>${message}</p>`;
         }
-    });
-}
 
-function appendMessage(message, sender) {
-    const chatBox = document.getElementById("chat-box");
-    const messageElement = document.createElement("div");
-    messageElement.classList.add("chat-message", sender);
-    messageElement.innerHTML = `<p>${message}</p>`;
-    chatBox.appendChild(messageElement);
-    chatBox.scrollTop = chatBox.scrollHeight;
-}
+        chatBox.appendChild(msgDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
 
-function showTypingIndicator(show) {
-    const indicator = document.getElementById("typing-indicator");
-    indicator.classList.toggle("visible", show);
-}
-
-function appendAd() {
-    const chatBox = document.getElementById("chat-box");
-    const adContainer = document.createElement("div");
-    adContainer.classList.add("chat-message", "assistant");
-    adContainer.innerHTML = `
-        <ins class="adsbygoogle"
-             style="display:block; text-align:center; margin-top:10px;"
-             data-ad-client="ca-4928946447051580"
-             data-ad-slot="3754304957"
-             data-ad-format="fluid"
-             data-full-width-responsive="true"></ins>
-    `;
-    chatBox.appendChild(adContainer);
-    chatBox.scrollTop = chatBox.scrollHeight;
-    (adsbygoogle = window.adsbygoogle || []).push({});
-}
+    // Show or hide the typing indicator
+    function showTypingIndicator(show) {
+        if (show) {
+            typingIndicator.classList.remove("hidden");
+            typingIndicator.classList.add("visible");
+        } else {
+            typingIndicator.classList.remove("visible");
+            typingIndicator.classList.add("hidden");
+        }
+    }
+});

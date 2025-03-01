@@ -1,181 +1,234 @@
 :root {
   --primary-color: #5ad7d9;
-  --secondary-color: #000;
-  --light-bg: #fff;
-  --dark-bg: #1c1c1c;
-  --dark-chat-bg: #2a2a2a;
-  --dark-text: #e0e0e0;
-  --assistant-bubble-bg: #f0f0f0;
+  --secondary-color: #333;
+  --background-color: #f9f9f9;
+  --assistant-bubble-bg: #e5e5ea;
   --user-bubble-bg: #5ad7d9;
+  --text-color: #333;
 }
 
 body {
-  font-family: Arial, sans-serif;
-  background-color: var(--light-bg);
-  color: var(--secondary-color);
+  font-family: 'Poppins', sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  margin: 0;
+  padding: 0;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
-  margin: 0;
-}
-
-body.dark-mode {
-  background-color: var(--dark-bg);
-  color: var(--dark-text);
 }
 
 .chat-container {
   width: 100%;
-  max-width: 100%;
-  height: 90vh;
-  background-color: var(--light-bg);
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  padding: 10px;
+  max-width: 700px;
+  height: 95vh;
   display: flex;
   flex-direction: column;
+  padding: 15px;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
 }
 
-body.dark-mode .chat-container {
-  background-color: var(--dark-chat-bg);
-}
-
+/* Quick Replies */
 .quick-replies {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  margin-bottom: 10px;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
 .quick-replies button {
-  background-color: var(--secondary-color);
-  color: var(--light-bg);
+  flex: 1 1 calc(50% - 10px);
+  max-width: 220px;
+  padding: 14px;
+  background-color: var(--primary-color);
+  color: white;
   border: none;
-  padding: 8px 12px;
-  margin: 5px;
-  border-radius: 6px;
+  border-radius: 30px;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  text-align: center;
+  font-size: 16px;
+  transition: all 0.3s ease-in-out;
+  font-weight: 500;
 }
 
 .quick-replies button:hover {
-  background-color: var(--primary-color);
+  background-color: #49c1c3;
+  transform: scale(1.05);
 }
 
+/* Chat Box */
 .chat-box {
   flex: 1;
   overflow-y: auto;
   padding: 15px;
-  background-color: #f5f5f5;
+  background-color: #fff;
   border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-body.dark-mode .chat-box {
-  background-color: var(--dark-bg);
-}
-
+/* Chat Messages */
 .chat-message {
-  margin-bottom: 10px;
-  padding: 8px 12px;
-  border-radius: 15px;
-  max-width: 60%;
+  max-width: 80%;
+  padding: 12px 16px;
+  border-radius: 18px;
   word-wrap: break-word;
+  font-size: 15px;
+  animation: fadeIn 0.3s ease;
 }
 
 .chat-message.user {
   background-color: var(--user-bubble-bg);
-  color: var(--light-bg);
-  align-self: flex-end;
-  text-align: right;
+  color: white;
+  margin-left: auto;
+  border-bottom-right-radius: 4px;
 }
 
 .chat-message.assistant {
   background-color: var(--assistant-bubble-bg);
-  color: var(--secondary-color);
-  align-self: flex-start;
+  color: var(--text-color);
+  margin-right: auto;
+  border-bottom-left-radius: 4px;
+
+  /* Make space for avatar & text side by side */
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
 }
 
-body.dark-mode .chat-message.assistant {
-  background-color: #3a3a3a;
-  color: var(--dark-text);
+/* Avatar */
+.chat-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
 }
 
-body.dark-mode .chat-message.user {
-  background-color: var(--primary-color);
-  color: var(--secondary-color);
+/* For the text portion if there's an avatar */
+.message-text {
+  white-space: pre-wrap;
+  line-height: 1.4;
 }
 
-#typing-indicator {
+/* Typing Indicator */
+.typing-indicator {
+  margin-top: 8px;
   font-style: italic;
-  color: var(--secondary-color);
-  margin: 10px;
+}
+
+/* Hidden & Visible States */
+.typing-indicator.hidden {
   display: none;
 }
-
-#typing-indicator.visible {
+.typing-indicator.visible {
   display: block;
 }
 
-.chat-form {
-  padding: 10px;
+/* Dots Animation (Optional) */
+.dot {
+  animation: blink 1s infinite;
+  opacity: 0;
+}
+.dot:nth-child(1) {
+  animation-delay: 0s;
+}
+.dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+@keyframes blink {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
 }
 
+/* Input Box */
 .input-group {
   display: flex;
+  padding: 10px;
 }
 
 .input-group input {
   flex: 1;
-  padding: 10px;
-  border: 1px solid var(--primary-color);
-  border-radius: 4px 0 0 4px;
+  padding: 14px;
+  border: 2px solid var(--primary-color);
+  border-radius: 30px 0 0 30px;
+  font-size: 16px;
+  outline: none;
+  transition: all 0.3s ease-in-out;
+}
+
+.input-group input:focus {
+  border-color: #49c1c3;
 }
 
 .input-group button {
+  padding: 14px 18px;
   background-color: var(--primary-color);
+  color: white;
   border: none;
-  padding: 10px 20px;
-  color: var(--light-bg);
-  border-radius: 0 4px 4px 0;
+  border-radius: 0 30px 30px 0;
   cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s ease-in-out;
+  font-weight: 500;
 }
 
+.input-group button:hover {
+  background-color: #49c1c3;
+  transform: scale(1.05);
+}
+
+/* Action Buttons */
 .action-buttons {
   display: flex;
-  justify-content: space-between;
+  gap: 10px;
   margin-top: 10px;
-}
-
-.action-buttons button {
-  flex: 1;
-  margin: 0 5px;
   padding: 10px;
-  background-color: var(--secondary-color);
-  color: var(--light-bg);
-  border-radius: 4px;
-  cursor: pointer;
+  justify-content: center;
 }
 
-#dark-mode-toggle {
+.styled-btn {
   background-color: var(--primary-color);
-  color: var(--secondary-color);
+  color: white;
+  padding: 14px;
+  border-radius: 30px;
+  cursor: pointer;
+  flex: 1;
+  border: none;
+  font-size: 16px;
+  transition: all 0.3s ease-in-out;
+  font-weight: 500;
 }
 
-@media (max-width: 600px) {
+.styled-btn:hover {
+  background-color: #49c1c3;
+  transform: scale(1.05);
+}
+
+/* Fade-in Animation for messages */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive for Desktop */
+@media (min-width: 1024px) {
   .chat-container {
-      height: 100vh;
+      max-width: 800px;
   }
-
-  .chat-box {
-      height: 50vh;
-  }
-
-  .chat-message {
-      max-width: 80%;
-  }
-
   .quick-replies button {
-      flex: 1 1 45%;
+      max-width: 200px;
+  }
+  .input-group input {
+      font-size: 18px;
+  }
+  .styled-btn {
+      font-size: 16px;
   }
 }
