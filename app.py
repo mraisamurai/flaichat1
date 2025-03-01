@@ -17,22 +17,7 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY")
 
 
 
-# Enable CORS with support for credentials (important for embedded iframes)
-CORS(app, supports_credentials=True)
 
-@app.after_request
-def set_cookies(response):
-    response.headers["Access-Control-Allow-Origin"] = "*"  # Allow all origins
-    response.headers["Access-Control-Allow-Credentials"] = "true"
-    response.headers["Access-Control-Allow-Methods"] = "GET,POST,OPTIONS"
-    response.headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization"
-    response.set_cookie(
-        "session",
-        httponly=True,
-        secure=True,  # Set this to False for local testing
-        samesite="None"  # Important for embedded iframes
-    )
-    return response
 
 # Azure OpenAI API Configuration (Ensure these are set in Azure's environment variables)
 AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
