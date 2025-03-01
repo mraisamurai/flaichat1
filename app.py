@@ -1,36 +1,37 @@
 from flask import Flask, request, jsonify, render_template, session
 from flask_session import Session  # Flask-Session for session storage
+from flask_cors import CORS  # CORS support for cross-origin requests
 import os
 import requests
 from dotenv import load_dotenv
 import re
 import tempfile  # To store session files in a temp directory
-from flask_cors import CORS  # Import CORS from flask_cors
 
 # Load environment variables
 load_dotenv()
 
 app = Flask(__name__)
 
-# Set Flask Secret Key (Ensure this is set in Azure App Service)
+# Set Flask Secret Key (Ensure this is set in Azure)
 app.secret_key = os.getenv("FLASK_SECRET_KEY")
 
-# Configure Flask-Session to use a file-based session system
-SESSION_DIR = tempfile.gettempdir()  # Use a temp directory for session storage
+# Configure Flask-Session for File-Based Storage
+SESSION_DIR = tempfile.gettempdir()  # Store session data in a temp directory
 
-app.config["SESSION_TYPE"] = "filesystem"  # Store session in files instead of memory
-app.config["SESSION_FILE_DIR"] = SESSION_DIR  # Save sessions in a temp directory
-app.config["SESSION_PERMANENT"] = False  # Keep sessions non-permanent
-app.config["SESSION_USE_SIGNER"] = True  # Secure session cookies
+app.config["SESSION_TYPE"] = "filesystem"
+app.config["SESSION_FILE_DIR"] = SESSION_DIR
+app.config["SESSION_PERMANENT"] = False
+app.config["SESSION_USE_SIGNER"] = True
 
 # Initialize Flask-Session
 Session(app)
 
-# Enable CORS with support for credentials (important for embedded iframes)
+# Enable CORS (for iframe embedding support)
 CORS(app, supports_credentials=True)
 
 @app.after_request
 def set_cookies(response):
+    """Ensure session cookies are accepted in embedded iframes."""
     response.headers["Access-Control-Allow-Origin"] = "*"  # Allow all origins
     response.headers["Access-Control-Allow-Credentials"] = "true"
     response.headers["Access-Control-Allow-Methods"] = "GET,POST,OPTIONS"
