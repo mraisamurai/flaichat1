@@ -1,150 +1,80 @@
-// Initialize chat history
-let chatMessages = [];
+document.addEventListener("DOMContentLoaded", () => {
+    const chatBox = document.getElementById("chat-box");
+    const typingIndicator = document.getElementById("typing-indicator");
 
-// Save chat history to localStorage
-function saveChatHistory() {
-    localStorage.setItem("chat_history", JSON.stringify(chatMessages));
-}
+    // Handle the form submission
+    document.getElementById("chat-form").addEventListener("submit", handleSubmit);
 
-// Load chat history from localStorage
-function loadChatHistory() {
-    let storedChat = localStorage.getItem("chat_history");
-    if (storedChat) {
-        chatMessages = JSON.parse(storedChat);
-        renderChatHistory();
+    function handleSubmit(event) {
+        event.preventDefault();
+        const messageInput = document.getElementById("user-message");
+        const message = messageInput.value.trim();
+        if (!message) return;
+        sendMessage(message);
+        messageInput.value = "";
     }
-}
 
-// Function to render chat history
-function renderChatHistory() {
-    let chatContainer = document.getElementById("chat-container");
-    chatContainer.innerHTML = ""; // Clear previous messages
+    // Send a message to the Flask backend
+    window.sendMessage = function(message) {
+        appendMessage(message, "user");
+        showTypingIndicator(true);
 
-    chatMessages.forEach((msg) => {
-        let msgDiv = document.createElement("div");
-        msgDiv.classList.add("message");
+        fetch("/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            showTypingIndicator(false);
+            appendMessage(data.reply, "assistant");
+        })
+        .catch((error) => {
+            console.error("Error:", error);
+            showTypingIndicator(false);
+        });
+    };
 
-        if (msg.role === "user") {
-            msgDiv.classList.add("user-message");
-        } else if (msg.role === "assistant") {
-            msgDiv.classList.add("assistant-message");
+    // Continue chat
+    window.continueChat = function() {
+        sendMessage("continue");
+    };
+
+    // Reset chat
+    window.resetChat = function() {
+        fetch("/reset", { method: "POST" })
+            .then(() => {
+                chatBox.innerHTML = "";
+            });
+    };
+
+    // Append a message to the chat box
+    function appendMessage(message, sender) {
+        const msgDiv = document.createElement("div");
+        msgDiv.classList.add("chat-message", sender);
+
+        if (sender === "assistant") {
+            // Use the Ottoman AI avatar
+            msgDiv.innerHTML = `
+                <img src="/static/images/ottoman-ai.png" alt="Ottoman AI" class="chat-avatar" />
+                <div class="message-text">${message}</div>
+            `;
+        } else {
+            msgDiv.innerHTML = `<p>${message}</p>`;
         }
 
-        msgDiv.innerHTML = msg.content;
-        chatContainer.appendChild(msgDiv);
-    });
-
-    chatContainer.scrollTop = chatContainer.scrollHeight; // Auto-scroll
-}
-
-// Load chat history on page load
-window.onload = function() {
-    loadChatHistory();
-};
-
-// Function to handle sending messages
-function sendMessage() {
-    let userInput = document.getElementById("user_input").value;
-
-    if (userInput.trim() === "") return;
-
-    // Add user message to chat history
-    chatMessages.push({ role: "user", content: userInput });
-    saveChatHistory();
-    renderChatHistory();
-
-    // Show "typing" indicator
-    showTypingIndicator();
-
-    fetch("/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userInput })
-    })
-    .then(response => response.json())
-    .then(data => {
-        hideTypingIndicator();
-        chatMessages.push({ role: "assistant", content: data.reply });
-        saveChatHistory();
-        renderChatHistory();
-    })
-    .catch(error => {
-        hideTypingIndicator();
-        console.error("Error:", error);
-    });
-
-    document.getElementById("user_input").value = ""; // Clear input field
-}
-
-// Function to show "Ottoman AI is typing..."
-function showTypingIndicator() {
-    let chatContainer = document.getElementById("chat-container");
-    let typingDiv = document.createElement("div");
-    typingDiv.classList.add("typing-indicator");
-    typingDiv.id = "typing-indicator";
-    typingDiv.innerHTML = "Ottoman AI is typing...";
-    chatContainer.appendChild(typingDiv);
-}
-
-// Function to hide "typing" indicator
-function hideTypingIndicator() {
-    let typingIndicator = document.getElementById("typing-indicator");
-    if (typingIndicator) typingIndicator.remove();
-}
-
-// Function to handle "Continue" button
-function continueChat() {
-    if (chatMessages.length > 0) {
-        let lastMessage = chatMessages[chatMessages.length - 1].content;
-        sendMessageWithContent("Continue from where you left off: " + lastMessage);
+        chatBox.appendChild(msgDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
     }
-}
 
-// Send message with predefined content (for "Continue" button)
-function sendMessageWithContent(message) {
-    chatMessages.push({ role: "user", content: message });
-    saveChatHistory();
-    renderChatHistory();
-
-    // Show "typing" indicator
-    showTypingIndicator();
-
-    fetch("/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: message })
-    })
-    .then(response => response.json())
-    .then(data => {
-        hideTypingIndicator();
-        chatMessages.push({ role: "assistant", content: data.reply });
-        saveChatHistory();
-        renderChatHistory();
-    })
-    .catch(error => {
-        hideTypingIndicator();
-        console.error("Error:", error);
-    });
-}
-
-// Function to reset chat
-function resetChat() {
-    chatMessages = [];
-    localStorage.removeItem("chat_history");
-    fetch("/reset", { method: "POST" })
-    .then(() => {
-        renderChatHistory();
-    });
-}
-
-// Handle session transfer from parent page (for embedded iframe)
-window.addEventListener("message", function(event) {
-    if (event.origin === "https://your-parent-website.com") {
-        document.cookie = event.data.sessionToken;
+    // Show or hide the typing indicator
+    function showTypingIndicator(show) {
+        if (show) {
+            typingIndicator.classList.remove("hidden");
+            typingIndicator.classList.add("visible");
+        } else {
+            typingIndicator.classList.remove("visible");
+            typingIndicator.classList.add("hidden");
+        }
     }
-}, false);
-
-// Event listeners for buttons
-document.getElementById("send_button").addEventListener("click", sendMessage);
-document.getElementById("reset_button").addEventListener("click", resetChat);
-document.getElementById("continue_button").addEventListener("click", continueChat);
+});
