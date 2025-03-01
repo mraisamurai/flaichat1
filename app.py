@@ -1,5 +1,4 @@
 from flask import Flask, request, jsonify, render_template, session
-from flask_session import Session
 import os
 import requests
 from dotenv import load_dotenv
@@ -10,15 +9,6 @@ load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY")
-
-# Configure Flask-Session for File-Based Storage
-app.config["SESSION_TYPE"] = "filesystem"  # Store session data in files
-app.config["SESSION_PERMANENT"] = False  # Keep sessions non-permanent
-app.config["SESSION_FILE_DIR"] = "/tmp/flask_session"  # Store sessions in /tmp directory
-app.config["SESSION_USE_SIGNER"] = True  # Sign cookies for security
-
-# Initialize Flask-Session
-Session(app)
 
 # Azure API Credentials
 AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
