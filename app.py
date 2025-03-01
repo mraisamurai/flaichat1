@@ -1,11 +1,10 @@
 from flask import Flask, request, jsonify, render_template, session
-from flask_session import Session  # Flask-Session for session storage
-from flask_cors import CORS  # CORS support for cross-origin requests
+from flask_session import Session
 import os
 import requests
 from dotenv import load_dotenv
 import re
-import tempfile  # To store session files in a temp directory
+import tempfile
 
 # Load environment variables
 load_dotenv()
@@ -15,26 +14,18 @@ app = Flask(__name__)
 # Set Flask Secret Key (Ensure this is set in Azure)
 app.secret_key = os.getenv("FLASK_SECRET_KEY")
 
+# Configure Flask-Session for File-Based Storage
+SESSION_DIR = tempfile.gettempdir()
+
+app.config["SESSION_TYPE"] = "filesystem"
+app.config["SESSION_FILE_DIR"] = SESSION_DIR
+app.config["SESSION_PERMANENT"] = False
+app.config["SESSION_USE_SIGNER"] = True
+
+# Initialize Flask-Session
 Session(app)
 
-# Enable CORS for iframe embedding
-CORS(app, supports_credentials=True)
-
-@app.after_request
-def set_cookies(response):
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Credentials"] = "true"
-    response.headers["Access-Control-Allow-Methods"] = "GET,POST,OPTIONS"
-    response.headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization"
-    response.set_cookie(
-        "session",
-        httponly=True,
-        secure=True,
-        samesite="None"
-    )
-    return response
-
-# Azure OpenAI API Configuration (Ensure these are set in Azure's environment variables)
+# Azure OpenAI API Configuration
 AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
 AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT")
 AZURE_OPENAI_DEPLOYMENT_NAME = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME")
@@ -69,30 +60,16 @@ def chat():
             "content": (
                 "You are Ottoman AI, a professional AI chef providing expert food and nutrition advice. "
                 "Offer detailed, accurate, and culturally sensitive culinary information, ensuring your responses "
-                "are tailored to the needs and preferences of the user.\n\n"
-                "# Guidelines:\n"
-                "- **Expertise**: Provide precise measurements, techniques, and substitutions where applicable.\n"
-                "- **Cultural Awareness**: Be mindful of global culinary traditions (vegan, halal, kosher, etc.).\n"
-                "- **Clarity and Precision**: Use clear step-by-step instructions.\n"
-                "- **Customizability**: Tailor suggestions to user preferences, skill level, and available ingredients.\n\n"
-                "# Output Format:\n"
-                "For recipes: \n"
-                "- Title\n"
-                "- Ingredients (with quantities)\n"
-                "- Instructions (step-by-step)\n"
-                "- Serving Suggestions\n"
-                "- Nutrition Information (optional)\n\n"
-                "For nutrition advice: Provide concise and clear responses."
+                "are tailored to the needs and preferences of the user."
             )
         }]
         session["bot_response_count"] = 0
 
-    # Handle "continue" functionality
     if user_message.lower() == "continue" and len(session["chat_history"]) > 1:
         user_message = f"Continue from where you left off: {session['chat_history'][-1]['content']}"
 
     session["chat_history"].append({"role": "user", "content": user_message})
-    session.modified = True  # Ensure session changes are saved
+    session.modified = True  
 
     try:
         response = requests.post(
@@ -105,10 +82,9 @@ def chat():
         assistant_message = response.json()["choices"][0]["message"]["content"]
         cleaned_message = clean_response(assistant_message)
 
-        # Save assistant response in session
         session["chat_history"].append({"role": "assistant", "content": assistant_message})
         session["bot_response_count"] += 1
-        session.modified = True  # Ensure session changes are saved
+        session.modified = True  
 
         return jsonify({"reply": cleaned_message})
 
