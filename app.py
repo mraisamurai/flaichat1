@@ -1,23 +1,38 @@
 from flask import Flask, request, jsonify, render_template, session
 from flask_session import Session  # Flask-Session for session storage
+from flask_cors import CORS  # CORS support for cross-origin requests
 import os
 import requests
 from dotenv import load_dotenv
 import re
 import tempfile  # To store session files in a temp directory
-from flask_cors import CORS  # Import CORS from flask_cors
 
 # Load environment variables
 load_dotenv()
 
 app = Flask(__name__)
 
-# Set Flask Secret Key (Ensure this is set in Azure App Service)
+# Set Flask Secret Key (Ensure this is set in Azure)
 app.secret_key = os.getenv("FLASK_SECRET_KEY")
 
+Session(app)
 
+# Enable CORS for iframe embedding
+CORS(app, supports_credentials=True)
 
-
+@app.after_request
+def set_cookies(response):
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Credentials"] = "true"
+    response.headers["Access-Control-Allow-Methods"] = "GET,POST,OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization"
+    response.set_cookie(
+        "session",
+        httponly=True,
+        secure=True,
+        samesite="None"
+    )
+    return response
 
 # Azure OpenAI API Configuration (Ensure these are set in Azure's environment variables)
 AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
@@ -116,4 +131,4 @@ def session_test():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
